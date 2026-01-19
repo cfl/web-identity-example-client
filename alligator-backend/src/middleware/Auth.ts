@@ -5,6 +5,7 @@ import jwksRsa from 'jwks-rsa'
 import dotenv from 'dotenv'
 dotenv.config()
 
+// this needs to be filled out for all the attributes necessary
 export interface UserInfo extends JwtPayload {
   resource_access: {
     [key: string]: {
@@ -12,6 +13,7 @@ export interface UserInfo extends JwtPayload {
     }
   }
 }
+
 export class Auth {
   async authenticate(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization
@@ -54,9 +56,6 @@ export class Auth {
     }
     try {
       const userInfo = jwt.verify(token, publicKey.getPublicKey()) as UserInfo
-      console.log('User Info in JWT Token', userInfo)
-      const roles = userInfo['resource_access']['alligator-admin'].roles
-      console.log('Roles ', roles)
       res.locals.user = userInfo
       next()
     } catch (error) {
