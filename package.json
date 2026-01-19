@@ -1,0 +1,17 @@
+{
+  "name": "using-alligator-sso",
+  "version": "1.0.0",
+  "description": "Sample for using alligator-sso for both front-end and backend",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "server": "npm start --prefix alligator-backend",
+    "client": "npm start --prefix alligator-frontend",
+    "dev": "concurrently --kill-others \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
