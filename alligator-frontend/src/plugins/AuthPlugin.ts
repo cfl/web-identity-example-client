@@ -11,27 +11,18 @@ export default {
       clientSecret: import.meta.env.VITE_KEYCLOAK_CLIENT_SECRET || '',
     }
     const authObject = new Keycloak(initOptions)
-    // authObject.onTokenExpired = async () => {
-    //   console.log('On Token Expired ')
-    //   try {
-    //     console.log('Refreshing token ')
-    //     await authObject.updateToken(30)
-    //   } catch (error) {
-    //     console.log('Error inside on token expired ')
-    //     authObject.login()
-    //   }
-    // }
-    let initializedKeycloak
-    try {
-      initializedKeycloak = await authObject.init({
-        onLoad: 'login-required',
-      })
-      console.log('Initialized keycloack successfully ? ', initializedKeycloak)
-    } catch (error) {
-      console.log('Error initializing ', error)
+    authObject.onTokenExpired = async () => {
+      try {
+        await authObject.updateToken(30)
+      } catch (error) {
+        authObject.login()
+      }
     }
+    let initializedKeycloak
+    initializedKeycloak = await authObject.init({
+      onLoad: 'login-required',
+    })
 
-    console.log('Initialized kloak')
     if (
       authObject.token &&
       authObject.idToken &&
@@ -42,7 +33,6 @@ export default {
         idToken: authObject.idToken,
         token: authObject.token,
       })
-      console.log('Setting loading to false ')
       useAuthStore().setLoading(false)
     } else {
       useAuthStore().commit('logout')

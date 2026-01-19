@@ -19,12 +19,4 @@ const router = createRouter({
     },
   ],
 })
-// router.beforeEach((to, from) => {
-//   if (useAuthStore().user.keycloak.accessToken) {
-//     console.log('Use auth store access token found')
-//     return { name: 'home' }
-//   }
-//   console.log('Blocking access to home view')
-//   return { name: 'about' }
-// })
 export default router
