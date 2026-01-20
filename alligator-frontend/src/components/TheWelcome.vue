@@ -6,20 +6,17 @@ const data = reactive({
 })
 let error = ref('')
 
-async function testTokenRefresh() {
-  console.log('get data again to test refresh token ')
-  const response = await apiClient.get('api/hello')
-  data.message = response.data?.message
-}
-
 onMounted(async () => {
-  const response = await apiClient.get('api/hello')
-  data.message = response.data?.message
+  try {
+    const response = await apiClient.get('api/hello')
+    data.message = response.data?.message
+  } catch (err: any) {
+    error.value = err.message
+  }
 })
 </script>
 
 <template>
   <div v-if="!error">Backend says {{ data }}</div>
   <div v-if="error">Error occurred {{ error }}</div>
-  <button @click="testTokenRefresh">Get Data Again</button>
 </template>
