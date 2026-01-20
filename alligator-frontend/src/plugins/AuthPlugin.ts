@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 
 export default {
   install: async (app: any) => {
-    useAuthStore().setLoading(true)
+    console.log('Starting auth plugin installation')
     let initOptions = {
       url: import.meta.env.VITE_KEYCLOAK_AUTH_SERVER_URL || 'http://localhost:8080',
       realm: import.meta.env.VITE_KEYCLOAK_REALM || '',
@@ -14,6 +14,10 @@ export default {
     authObject.onTokenExpired = async () => {
       try {
         await authObject.updateToken(30)
+        useAuthStore().commit('login', {
+          idToken: authObject.idToken,
+          token: authObject.token,
+        })
       } catch (error) {
         authObject.login()
       }
@@ -29,11 +33,11 @@ export default {
       authObject.token != '' &&
       authObject.idToken != ''
     ) {
+      console.log('Saving tokens to store')
       useAuthStore().commit('login', {
         idToken: authObject.idToken,
         token: authObject.token,
       })
-      useAuthStore().setLoading(false)
     } else {
       useAuthStore().commit('logout')
     }

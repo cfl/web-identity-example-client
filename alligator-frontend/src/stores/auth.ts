@@ -8,16 +8,8 @@ export const useAuthStore = defineStore('storeAuth', () => {
       accessToken: null,
     },
   })
-  let loading = ref(true)
   return {
-    loading,
     user,
-    setLoading: (value: boolean) => {
-      loading.value = value
-    },
-    getLoading: () => {
-      return loading
-    },
     commit: (event: string, data?: any) => {
       if (event === 'login') {
         user.keycloak = {

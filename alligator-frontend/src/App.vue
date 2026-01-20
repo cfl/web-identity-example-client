@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
 import TheWelcome from './components/TheWelcome.vue'
 </script>
 
@@ -8,7 +7,7 @@ import TheWelcome from './components/TheWelcome.vue'
     <TheWelcome></TheWelcome>
   </header>
 
-  <RouterView />
+  <!-- <RouterView /> -->
 </template>
 
 <style scoped>
