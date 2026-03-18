@@ -26,7 +26,7 @@ Go to Manage Realms and either create a realm or select an existing CFL realm. M
 
 4. **Login settings**:
    - **Valid redirect URIs**:
-     - `http://localhost:3000/*` (for local development)
+     - `http://localhost:3001/*` (for local development)
      - `https://your-domain.com/*` (for production)
    - **Valid post logout redirect URIs**: `+` (same as redirect URIs)
    - **Web origins**: `+` (or specify your domains)
@@ -34,45 +34,144 @@ Go to Manage Realms and either create a realm or select an existing CFL realm. M
      with redirect URI `http://localhost:49613/*`. The valid post logout redirect URIs, and the web origins, are both "+"
 
 5. **Set the CFL Theme**
-   - After creating client, scroll down to LoginSettings
-   - Select cfl-theme from the Login theme. If it is not present, you may have had some issues in the build process of keycloak.
+   - After creating client, scroll down to Login Settings
+   - Select **cfl-theme** from the Login theme. If it is not present, you may have had some issues in the build process of keycloak.
+   - Click **Save**
 
 6. **Get Client Credentials**
-   - If you are using a public client, there is no client secret
-   - But if you are using a confidential client (such as when SSO calls get initiated from backend), you can go to credentials tab in Keycloak to get your secret.
+   - Since this sample is using a public client, there is no client secret
+   - But if you are using a confidential client (such as when SSO calls get initiated from backend), you can go to credentials tab in Keycloak to get your secret. Set the VITE_KEYCLOAK_CLIENT_SECRET environment variable with this value.
 
 7. Create a user that you will use to login when testing the application under Users
 
 8. **Add email to the jwt token values**
    - To make sure your token includes information such as your id or email, you need to configure that in Keycloak.
-   - Go to Clients -> Client Scopes -> Create Client Scope
+   - Go to Client Scopes -> Create Client Scope, named "email scope"
    - Check Include in token scope, click save
-   - Go to add a preconfigured mapper, and choose email
-   - Go to client, sample-admin, and client scopes, and click Add Client Scopes
-   - Add your newly created scope (select default)
+   - Click on Add a Predefined Mapper, and choose email
+   - Go to Clients -> sample-admin -> client scopes, and click Add Client Scopes
+   - Add your newly created 'email scope' (select default)
 
-## Setup keycloak client, set the environment variables, run the client and backend
+## Setup Webhooks (Optional)
 
-To run both the backend and front end, from the using-alligator-sso directory type
+The **agent** service supports receiving webhooks from Keycloak for real-time user event notifications. This is a separate service from the main backend.
 
-Create a .env file inside alligator-backend directory
+### Create Client for Agent Service
+
+The agent needs a separate confidential client to authenticate with Keycloak for webhook registration. This is different from the `sample-admin` client used by the frontend.
+
+1. In Keycloak admin console, go to **Clients** → **Create client**
+2. Configure the admin client:
+   - **Client ID**: `sample-admin-agent`
+   - **Client Protocol**: `openid-connect`
+   - Click **Next**
+
+3. **Capability config**:
+   - **Client authentication**: `ON` (this makes it confidential)
+   - **Authorization**: `OFF`
+   - **Service accounts roles**: `ON` (enables client credentials flow)
+   - Click **Next**, then **Save**
+
+4. **Assign Admin Roles**:
+   - Go to **Service Account Roles** tab
+   - Assign necessary admin roles for webhook management (e.g., realm-admin or specific event listener permissions)
+
+5. **Get Client Secret**:
+   - Go to **Credentials** tab
+   - Copy the **Client Secret**
+
+6. **Add to agent .env**:
+   ```
+   KEYCLOAK_CLIENT_ID=sample-admin  # The client you want to monitor
+   KEYCLOAK_AGENT_CLIENT_ID=sample-admin-agent
+   KEYCLOAK_AGENT_CLIENT_SECRET=your_copied_client_secret
+   ```
+
+The agent will automatically get access tokens using these credentials when needed for webhook registration. No manual token management required!
+
+### Choose Agent Exposure Method:
+
+**Option 1: Cloud Deployment**  
+Set `AGENT_URL` to your public agent URL
+
+**Option 2: Local Development with Ngrok**  
+1. Sign up at [ngrok.com](https://ngrok.com) and get your auth token
+2. Add `NGROK_AUTH_TOKEN` to `agent/.env`
+
+**Option 3: Skip Webhooks Entirely**  
+Don't set `AGENT_URL` or `NGROK_AUTH_TOKEN`. The agent service will automatically exit, and the app will work without webhooks (you won't receive real-time user deletion events).
+
+## Setup keycloak client, set the environment variables, run the services
+
+### Backend Service
+
+Create a .env file inside the `backend` directory:
 
 ```
 KEYCLOAK_URL=http://localhost:8080
 KEYCLOAK_REALM=cfl
+KEYCLOAK_CLIENT_ID=sample-admin
+KEYCLOAK_ADMIN_CLIENT_ID=sample-admin-backend
+KEYCLOAK_ADMIN_CLIENT_SECRET=your_admin_client_secret
+FRONTEND_URL=http://localhost:49613  # Your frontend URL for CORS
+PORT=3001  # Backend port
 ```
 
-Create a .env file inside alligator-frontend directory as well
+### Agent Service (Optional - for webhooks)
+
+Create a .env file inside the `agent` directory:
+
+```
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=cfl
+KEYCLOAK_CLIENT_ID=sample-admin  # The client whose events you want to monitor
+KEYCLOAK_AGENT_CLIENT_ID=sample-admin-agent  # Agent's auth credentials
+KEYCLOAK_AGENT_CLIENT_SECRET=your_agent_client_secret
+PORT=3002  # Agent port
+AGENT_URL=  # Optional: your agent URL if publicly accessible
+NGROK_AUTH_TOKEN=your_ngrok_token_here  # Optional: only if using ngrok
+```
+
+**Note:** If you don't set either `AGENT_URL` or `NGROK_AUTH_TOKEN`, the agent service will exit immediately on startup since it has no way to receive webhooks.
+
+### Frontend Service
+
+Create a .env file inside the `frontend` directory:
 
 ```
 VITE_KEYCLOAK_REALM=cfl
 VITE_KEYCLOAK_AUTH_SERVER_URL=http://localhost:8080/
-VITE_KEYCLOAK_CLIENT_ID=sample-admin // up to you if thats what you called your client
+VITE_KEYCLOAK_CLIENT_ID=sample-admin
 ```
 
-Then run both backend and frontend, from the top directory
+## Running the Services
+
+From the root directory, you can run all services (backend, frontend, and optionally agent):
 
 ```
+npm install
+npm run dev
+```
+
+Or run each service individually:
+
+**Backend:**
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Agent (optional - for webhooks):**
+```bash
+cd agent
 npm install
 npm run dev
 ```
