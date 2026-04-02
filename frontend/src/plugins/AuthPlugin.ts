@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 
 export default {
   install: async (app: any) => {
-    console.log('Starting auth plugin installation')
     let initOptions = {
       url: import.meta.env.VITE_KEYCLOAK_AUTH_SERVER_URL || 'http://localhost:8080',
       realm: import.meta.env.VITE_KEYCLOAK_REALM || '',
@@ -23,22 +22,45 @@ export default {
       }
     }
     
-    let initializedKeycloak
-    initializedKeycloak = await authObject.init({
-      onLoad: 'login-required',
-    })
+    // Load previously saved tokens from sessionStorage
+    const savedToken = sessionStorage.getItem('kc_token')
+    const savedIdToken = sessionStorage.getItem('kc_idToken')
+    const savedRefreshToken = sessionStorage.getItem('kc_refreshToken')
+    
+    try {
+      await authObject.init({
+        onLoad: 'login-required',
+        token: savedToken || undefined,
+        idToken: savedIdToken || undefined,
+        refreshToken: savedRefreshToken || undefined,
+      })
+    } catch (error) {
+      // If init fails with saved tokens, clear them and try fresh login
+      console.error('Failed to init with saved tokens:', error)
+      sessionStorage.removeItem('kc_token')
+      sessionStorage.removeItem('kc_idToken')
+      sessionStorage.removeItem('kc_refreshToken')
+      await authObject.init({
+        onLoad: 'login-required',
+      })
+    }
 
-    if (
-      authObject.token &&
-      authObject.idToken &&
-      authObject.token != '' &&
-      authObject.idToken != ''
-    ) {
-      console.log('Saving tokens to store')
+    if (!authObject.authenticated) {
+      await authObject.login()
+    }
+
+    if (authObject.authenticated && authObject.token && authObject.idToken) {
       useAuthStore().commit('login', {
         idToken: authObject.idToken,
         token: authObject.token,
       })
+      
+      // Save tokens to sessionStorage for next page navigation
+      sessionStorage.setItem('kc_token', authObject.token)
+      sessionStorage.setItem('kc_idToken', authObject.idToken)
+      if (authObject.refreshToken) {
+        sessionStorage.setItem('kc_refreshToken', authObject.refreshToken)
+      }
       
       // Redirect to complete-user-info once per Keycloak session (AFTER tokens are saved)
       const currentPath = window.location.pathname
@@ -49,9 +71,8 @@ export default {
       const sessionKey = `complete-user-info-checked-${sessionId}`
       const hasChecked = sessionStorage.getItem(sessionKey)
       
-      // If we've already checked for this session OR we're on the complete-user-info page, skip
+      // Only redirect if this is a fresh login
       if (!hasChecked && !isCompleteUserInfoPage) {
-        // Set the flag BEFORE redirecting
         sessionStorage.setItem(sessionKey, 'true')
         
         const currentUrl = window.location.origin + window.location.pathname + window.location.search
@@ -62,7 +83,6 @@ export default {
         window.location.href = completeUserInfoUrl
       }
     } else {
-      console.log('NO TOKENS AVAILABLE - calling logout')
       useAuthStore().commit('logout')
     }
   },
