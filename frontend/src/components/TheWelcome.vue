@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import apiClient from '../services/api'
+import { logout } from '../plugins/AuthPlugin'
+
 const data = reactive({
   user: {
     email: ''
@@ -18,11 +20,17 @@ onMounted(async () => {
     error.value = err.message
   }
 })
+
+const handleLogout = () => {
+  logout()
+}
 </script>
 
 <template>
   <div class="container">
-      <header class="topWhite"></header>
+      <header class="topWhite">
+        <button @click="handleLogout" class="logout-button">Logout</button>
+      </header>
       <section class="header">
           <h1 v-if="!error">Hello {{ data.user?.email }}</h1>
       </section>
@@ -45,9 +53,26 @@ body {
   .topWhite {
     margin-top: 0px;
     display: flex;
-    background-color: rgb(237, 237, 237);;
+    background-color: rgb(237, 237, 237);
     width: 100%;
     min-height: 80px;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 20px;
+  }
+  .logout-button {
+    background-color: #437d3e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+  .logout-button:hover {
+    background-color: #356330;
   }
   .header {
     display: flex;

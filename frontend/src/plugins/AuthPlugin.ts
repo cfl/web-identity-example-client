@@ -1,6 +1,9 @@
 import Keycloak from 'keycloak-js'
 import { useAuthStore } from '@/stores/auth'
 
+// Export keycloak instance for use throughout the app
+export let keycloak: Keycloak | null = null
+
 export default {
   install: async (app: any) => {
     let initOptions = {
@@ -9,16 +12,16 @@ export default {
       clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || '',
       clientSecret: import.meta.env.VITE_KEYCLOAK_CLIENT_SECRET || '',
     }
-    const authObject = new Keycloak(initOptions)
-    authObject.onTokenExpired = async () => {
+    keycloak = new Keycloak(initOptions)
+    keycloak.onTokenExpired = async () => {
       try {
-        await authObject.updateToken(30)
+        await keycloak!.updateToken(30)
         useAuthStore().commit('login', {
-          idToken: authObject.idToken,
-          token: authObject.token,
+          idToken: keycloak!.idToken,
+          token: keycloak!.token,
         })
       } catch (error) {
-        authObject.login()
+        keycloak!.login()
       }
     }
     
@@ -28,7 +31,7 @@ export default {
     const savedRefreshToken = sessionStorage.getItem('kc_refreshToken')
     
     try {
-      await authObject.init({
+      await keycloak.init({
         onLoad: 'login-required',
         token: savedToken || undefined,
         idToken: savedIdToken || undefined,
@@ -40,26 +43,26 @@ export default {
       sessionStorage.removeItem('kc_token')
       sessionStorage.removeItem('kc_idToken')
       sessionStorage.removeItem('kc_refreshToken')
-      await authObject.init({
+      await keycloak.init({
         onLoad: 'login-required',
       })
     }
 
-    if (!authObject.authenticated) {
-      await authObject.login()
+    if (!keycloak.authenticated) {
+      await keycloak.login()
     }
 
-    if (authObject.authenticated && authObject.token && authObject.idToken) {
+    if (keycloak.authenticated && keycloak.token && keycloak.idToken) {
       useAuthStore().commit('login', {
-        idToken: authObject.idToken,
-        token: authObject.token,
+        idToken: keycloak.idToken,
+        token: keycloak.token,
       })
       
       // Save tokens to sessionStorage for next page navigation
-      sessionStorage.setItem('kc_token', authObject.token)
-      sessionStorage.setItem('kc_idToken', authObject.idToken)
-      if (authObject.refreshToken) {
-        sessionStorage.setItem('kc_refreshToken', authObject.refreshToken)
+      sessionStorage.setItem('kc_token', keycloak.token)
+      sessionStorage.setItem('kc_idToken', keycloak.idToken)
+      if (keycloak.refreshToken) {
+        sessionStorage.setItem('kc_refreshToken', keycloak.refreshToken)
       }
       
       // Redirect to complete-user-info once per Keycloak session (AFTER tokens are saved)
@@ -67,7 +70,7 @@ export default {
       const isCompleteUserInfoPage = currentPath.includes('/complete-user-info')
       
       // Use Keycloak session ID to create unique sessionStorage key
-      const sessionId = authObject.sessionId || authObject.subject
+      const sessionId = keycloak.sessionId || keycloak.subject
       const sessionKey = `complete-user-info-checked-${sessionId}`
       const hasChecked = sessionStorage.getItem(sessionKey)
       
@@ -85,5 +88,36 @@ export default {
     } else {
       useAuthStore().commit('logout')
     }
+
+    // Make keycloak instance available globally
+    app.config.globalProperties.$keycloak = keycloak
   },
+}
+
+// Logout function
+export const logout = () => {
+  if (keycloak) {
+    // Clear session storage
+    sessionStorage.removeItem('kc_token')
+    sessionStorage.removeItem('kc_idToken')
+    sessionStorage.removeItem('kc_refreshToken')
+    
+    // Clear all complete-user-info-checked keys
+    const keysToRemove: string[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key && key.startsWith('complete-user-info-checked-')) {
+        keysToRemove.push(key)
+      }
+    }
+    keysToRemove.forEach(key => sessionStorage.removeItem(key))
+    
+    // Clear auth store
+    useAuthStore().commit('logout')
+    
+    // Logout from Keycloak
+    keycloak.logout({
+      redirectUri: window.location.origin
+    })
+  }
 }
