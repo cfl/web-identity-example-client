@@ -9,7 +9,7 @@
     "server": "npm start --prefix backend",
     "client": "npm start --prefix frontend",
     "agent": "npm start --prefix agent",
-    "dev": "concurrently --kill-others \"cd backend && npm run dev\" \" cd frontend && npm start\" \" cd agent && npm run dev\""
+    "dev": "concurrently --kill-others \"npm run server\" \"npm run client\" \"npm run agent\""
   },
   "dependencies": {
     "typescript": "^6.0.2"

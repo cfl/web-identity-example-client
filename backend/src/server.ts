@@ -1,10 +1,8 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import type { Application } from 'express'
 import { routes } from './routes.js'
 import cors from 'cors'
-
-dotenv.config()
 
 const app: Application = express()
 

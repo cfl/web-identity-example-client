@@ -12,20 +12,16 @@ export class WebhookController {
   }
 
   receiveWebhookData = async (req: Request, res: Response) => {
-    console.log('Received form submission ', req.body)
     if (!req.body || !req.body.data) {
       throw new Error('Request is missing required information')
     }
     let formData = req.body.data
-    console.log('Form Data is ', formData)
-    console.log('Form Data User Token ', formData.userToken)
     if (!formData.userToken) {
       throw new Error('Submission is missing the required userToken')
     }
     const decodedUserToken = decodeURI(formData.userToken)
 
     const tokenData = jwt.verify(decodedUserToken, SAMPLE_SECRET) as JwtPayload
-    console.log('Token Data ', tokenData)
     if (!tokenData || !tokenData.userId) {
       throw new Error('Invalid user id, cannot save data')
     }

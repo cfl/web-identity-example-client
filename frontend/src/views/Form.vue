@@ -9,12 +9,9 @@ const formsURL = ref()
 const readyToLoadForm = ref(false)
 try {
     const response = await apiClient.get('api/signUserToken')
-    console.log('Response ', response.data.userIdToken)
     userToken.value = response.data.userIdToken
     const encodedUserToken = encodeURI(userToken.value)
-    console.log('Encoded user token ', encodedUserToken)
-    formsURL.value = `https://ca.makeforms.co/xx7nkai/?userToken=${encodedUserToken}&test=helloworld`
-    console.log('Set the forms url to ', formsURL.value)
+    formsURL.value = `https://ca.makeforms.co/xx7nkai/?userToken=${encodedUserToken}`
     readyToLoadForm.value = true
 } catch (err: any) {
     console.log('Error in example ', err)

@@ -12,8 +12,6 @@ export class SampleController {
   signUserId(req: Request, res: Response) {
     const userId = res.locals.user.sub
     const signedUserId = jwt.sign({ userId }, SAMPLE_SECRET, { expiresIn: '1h' })
-    console.log('User Id ', userId)
-    console.log('Signed User Id ', signedUserId)
     res.send({ userIdToken: signedUserId })
   }
 }
