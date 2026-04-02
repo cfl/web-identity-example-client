@@ -173,6 +173,8 @@ Note that the token needs to be url encoded, since it will be included in query 
 </template>
 ```
 
+To test out the form displays correctly, this example shows the form page under the /forms url
+
 ## Implement your Webhook Controller
 
 The following function can help you extract the userId from the form submission

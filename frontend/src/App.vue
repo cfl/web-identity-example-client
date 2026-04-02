@@ -3,7 +3,7 @@ import TheWelcome from './components/TheWelcome.vue'
 </script>
 
 <template>
-  <!-- <TheWelcome></TheWelcome> -->
+  <TheWelcome></TheWelcome>
   <Suspense>
     <RouterView />
   </Suspense>
