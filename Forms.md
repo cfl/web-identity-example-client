@@ -34,7 +34,7 @@ The code to embed should look similar to the follows:
 <iframe src="https://ca.makeforms.co/xx7nkai" style="width: 100%;height: 500px;max-height: 100%;max-width: 100%;" frameborder="none"></iframe>
 ```
 
-The full example of passing in the userToken to the form can be found [here]()
+The full example of passing in the userToken to the form can be found [here](https://github.com/cfl/web-identity-example-client/blob/main/frontend/src/views/Form.vue)
 
 ## Sign the user's id
 
@@ -67,7 +67,7 @@ Once this token has been generated, the embeded iframe can be updated to be as f
 <iframe :src="`https://ca.makeforms.co/xx7nkai?userToken=${yourUserIdToken}`" style="width: 100%;height: 500px;max-height: 100%;max-width: 100%;" frameborder="none"></iframe>
 ```
 
-The full code is [here]()
+The full code is [here](https://github.com/cfl/web-identity-example-client/blob/main/frontend/src/views/Form.vue)
 
 ## Create an endpoint for a webhook
 
@@ -230,7 +230,7 @@ KEYCLOAK_CLIENT_ID=sample-admin // use your client name here instead
 
 In UserInfoService file, the following snippet generates the token that can be used to make the POST request to submit the form data on the user's behalf.
 
-The full code example can be found [here]()
+The full code example can be found [here](https://github.com/cfl/web-identity-example-client/blob/180639a14a6e2629172e1ba7e9afd5dc25c01268/backend/src/services/UserInfoService.ts#L8)
 
 ```typescript
 const response = await axios.post(
