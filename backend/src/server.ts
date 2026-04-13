@@ -6,10 +6,10 @@ import cors from 'cors'
 
 const app: Application = express()
 
-const port = process.env.PORT || 3001
+const port = process.env.PORT || 9305
 
 // Middleware
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:49613'
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8355'
 
 app.use(
   cors({

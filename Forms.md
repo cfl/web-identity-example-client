@@ -111,12 +111,12 @@ You'll need an auth token to start it.
 ngrok config add-authtoken <insert your token here>
 ```
 
-For this example, the backend runs on port **3001**,
+For this example, the backend runs on port **9305**,
 
 To expose your running endpoint,
 
 ```bash
-ngrok http 3001
+ngrok http 9305
 ```
 
 The command will give you a url that you can use, that is similar to this:
