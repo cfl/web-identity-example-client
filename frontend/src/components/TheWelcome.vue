@@ -30,13 +30,10 @@ const handleLogout = () => {
 
 const toggleLocale = () => {
   const newLocale = locale.value === 'en' ? 'fr' : 'en'
-  console.log('>> Toggle locale from', locale.value, 'to', newLocale)
   // Store the new locale preference
   localStorage.setItem('preferredLocale', newLocale)
-  console.log('>> Updated localStorage to:', newLocale)
   // Update i18n locale immediately for instant UI change
   locale.value = newLocale
-  console.log('>> UI updated to:', newLocale)
 }
 </script>
 

@@ -87,7 +87,6 @@ function getPreferredLocale(): string {
   // Get the user's preferred locale: localStorage > browser language > 'en'
     return localStorage.getItem('preferredLocale') || navigator.language.split('-')[0] || 'en'
 }
-})
 
 // Logout function
 export const logout = () => {
