@@ -1,0 +1,7 @@
+{
+  "language": "Français",
+  "logout": "Déconnexion",
+  "hello": "Bonjour",
+  "jwtContents": "Le contenu de votre jeton JWT est:",
+  "errorOccurred": "Erreur survenue"
+}

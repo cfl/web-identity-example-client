@@ -1,0 +1,7 @@
+{
+  "language": "English",
+  "logout": "Logout",
+  "hello": "Hello",
+  "jwtContents": "The contents of your JWT token are:",
+  "errorOccurred": "Error occurred"
+}
