@@ -47,10 +47,8 @@ export default {
       })
       
       // Check if this is a fresh login or a page reload/silent refresh
-      const currentPath = window.location.pathname
-      const isCompleteUserInfoPage = currentPath.includes('/complete-user-info')
-      const freshLoginFlag = 'not-fresh-login'
-      const hasPreviouslyRedirected = sessionStorage.getItem(freshLoginFlag)
+      const notFreshLoginFlag = 'not-fresh-login'
+      const hasPreviouslyRedirected = sessionStorage.getItem(notFreshLoginFlag)
       
       // Only save token locale on fresh login (user might have changed it on Keycloak login page)
       // Don't overwrite on page reload (preserves UI toggle choice)
@@ -62,16 +60,15 @@ export default {
         }
       }
       
-      // Only redirect if this is a fresh login (flag not set and not already on complete-user-info page)
-      if (!hasPreviouslyRedirected && !isCompleteUserInfoPage) {
+      // Only redirect if this is a fresh login
+      if (!hasPreviouslyRedirected) {
         // Set the flag BEFORE redirecting to prevent future redirects on reloads/refreshes
-        sessionStorage.setItem(freshLoginFlag, 'true')
+        sessionStorage.setItem(notFreshLoginFlag, 'true')
         
-        const currentUrl = window.location.origin + window.location.pathname + window.location.search
         const clientId = initOptions.clientId
         const webIdentityFrontendUrl = import.meta.env.VITE_WEB_IDENTITY_FRONTEND_URL || 'http://localhost:8350'
         
-        const completeUserInfoUrl = `${webIdentityFrontendUrl}/complete-user-info?final_destination=${encodeURIComponent(currentUrl)}&clientId=${encodeURIComponent(clientId)}`
+        const completeUserInfoUrl = `${webIdentityFrontendUrl}/complete-user-info?final_destination=${encodeURIComponent(window.location.toString())}&clientId=${encodeURIComponent(clientId)}`
         window.location.replace(completeUserInfoUrl)
       }
     } else {
