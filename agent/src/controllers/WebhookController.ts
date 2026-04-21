@@ -217,13 +217,17 @@ export class UserInfoEventWebhookController {
     const eventType = eventData.type
 
     // Log based on event type
-    if (eventType === 'user.deleted' || eventType === 'DELETE_ACCOUNT') {
-      const username = eventData.username || eventData.userId || eventData.details?.username
-      if (username) {
-        console.log(`User deleted: ${username}`)
-      } else {
-        console.log(`User deletion event received (no username found)`)
-      }
+    if (eventType === 'user.deleted') {
+      const userId = eventData.userId || eventData.details?.userId
+      const username = eventData.username || eventData.details?.username
+      console.log(`User deleted: ${userId || 'unknown'}${username ? ` (${username})` : ''}`)
+      console.log(`  Event ID: ${eventData.eventId}`)
+    } else if (eventType === 'user.changed') {
+      const userId = eventData.userId
+      const username = eventData.username
+      console.log(`User changed: ${userId || 'unknown'}${username ? ` (${username})` : ''}`)
+      console.log(`  Event ID: ${eventData.eventId}`)
+      console.log(`  Note: Use the user ID to fetch updated data from the userinfo API`)
     } else {
       console.log(`Webhook event: ${eventType || 'unknown'}`)
     }
