@@ -21,7 +21,11 @@ app.use(cors({
   preflightContinue: false
 }))
 
-app.use(express.json())
+app.use(express.json({
+  verify: (req: any, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}))
 
 // Error handling for JSON parsing
 app.use((err: any, req: any, res: any, next: any) => {

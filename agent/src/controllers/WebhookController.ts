@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express'
 import { ngrokService } from '../services/NgrokService.js'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
+
+interface WebhookRequest extends Request {
+  rawBody?: string
+}
 
 export class UserInfoEventWebhookController {
   private agentUrl: string = ''
@@ -179,11 +183,10 @@ export class UserInfoEventWebhookController {
   /**
    * Verify HMAC signature of webhook payload
    */
-  private verifySignature(body: any, signature: string): boolean {
-    const payload = JSON.stringify(body)
+  private verifySignature(rawBody: string, signature: string): boolean {
     const expectedSignature = crypto
       .createHmac('sha256', this.hmacSecret)
-      .update(payload)
+      .update(rawBody)
       .digest('hex')
     
     return crypto.timingSafeEqual(
@@ -196,23 +199,27 @@ export class UserInfoEventWebhookController {
    * Handle incoming user info event webhook
    * This endpoint receives notifications about user events from external services
    */
-  handleWebhook(req: Request, res: Response) {
+  handleWebhook(req: WebhookRequest, res: Response) {
       console.log('User Info Event Webhook Received')
 
-    // Check for signature in body or header
-    const signature = req.body.signature || req.headers['x-keycloak-signature'] as string
-    const bodyWithoutSignature = { ...req.body }
-    delete bodyWithoutSignature.signature
+    // Get signature from header
+    const signature = req.headers['x-keycloak-signature'] as string
 
     // Verify HMAC signature if provided
     if (signature) {
-      if (!this.verifySignature(bodyWithoutSignature, signature)) {
+      const rawBody = req.rawBody
+      if (!rawBody) {
+        console.error('Webhook: Missing raw body for signature verification')
+        return res.status(400).json({ error: 'Missing raw body' })
+      }
+      
+      if (!this.verifySignature(rawBody, signature)) {
         console.error('Webhook: Invalid signature')
         return res.status(401).json({ error: 'Invalid signature' })
       }
     }
 
-    // Process the webhook payload
+    // req.body is already parsed JSON from express.json()
     const eventData = req.body
     const eventType = eventData.type
 
